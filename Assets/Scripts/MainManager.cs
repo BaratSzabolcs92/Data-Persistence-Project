@@ -12,20 +12,29 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
-    
+    public Text BestScoreText;
+
     private bool m_Started = false;
     private int m_Points;
-    
-    private bool m_GameOver = false;
 
-    
+    private bool m_GameOver = false;
+    private string playerName;
+    private int bestScore;
+    private string bestScorePlayer;
+
     // Start is called before the first frame update
     void Start()
     {
+        playerName = PlayerPrefs.GetString("PlayerName", "Player");
+        bestScore = PlayerPrefs.GetInt("BestScore", 0);
+        bestScorePlayer = PlayerPrefs.GetString("BestScorePlayer", "none");
+        BestScoreText.text = $"Best Score: {bestScorePlayer}: {bestScore}";
+        ScoreText.text = $"{playerName} Score: 0";
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -59,13 +68,37 @@ public class MainManager : MonoBehaviour
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                ClearBestScore();
+            }
         }
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"{playerName} Score: {m_Points}";
+
+        if (m_Points > bestScore)
+        {
+            bestScore = m_Points;
+            bestScorePlayer = playerName;
+            PlayerPrefs.SetInt("BestScore", bestScore);
+            PlayerPrefs.SetString("BestScorePlayer", bestScorePlayer);
+            BestScoreText.text = $"Best Score: {bestScorePlayer}: {bestScore}";
+            PlayerPrefs.Save();
+        }
+    }
+
+    public void ClearBestScore()
+    {
+        PlayerPrefs.DeleteKey("BestScore");
+        PlayerPrefs.DeleteKey("BestScorePlayer");
+        bestScore = 0;
+        bestScorePlayer = "none";
+        BestScoreText.text = $"Best Score: {bestScorePlayer}: {bestScore}";
+        PlayerPrefs.Save();
     }
 
     public void GameOver()
